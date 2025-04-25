@@ -86,6 +86,37 @@ export const addProductionRecord = (record) => {
   }
 };
 
+// Delete production record and update summary
+export const deleteProductionRecord = (timestamp) => {
+  try {
+    const records = getProductionRecords();
+    const recordToDelete = records.find(record => record.timestamp === timestamp);
+    
+    if (!recordToDelete) {
+      return false;
+    }
+    
+    // Update records
+    const updatedRecords = records.filter(record => record.timestamp !== timestamp);
+    localStorage.setItem(PRODUCTION_RECORDS_KEY, JSON.stringify(updatedRecords));
+    
+    // Update summary data
+    const summary = getSummaryData();
+    summary.totalProduction -= recordToDelete.amount;
+    summary.availableStock -= recordToDelete.amount;
+    
+    // Make sure values don't go below zero due to rounding errors
+    summary.totalProduction = Math.max(0, summary.totalProduction);
+    summary.availableStock = Math.max(0, summary.availableStock);
+    
+    updateSummaryData(summary);
+    return true;
+  } catch (error) {
+    console.error('Error deleting production record:', error);
+    return false;
+  }
+};
+
 // Get distribution records
 export const getDistributionRecords = () => {
   try {
@@ -106,6 +137,47 @@ export const addDistributionRecord = (record) => {
     return true;
   } catch (error) {
     console.error('Error adding distribution record:', error);
+    return false;
+  }
+};
+
+// Delete distribution record and update summary
+export const deleteDistributionRecord = (timestamp) => {
+  try {
+    const records = getDistributionRecords();
+    const recordToDelete = records.find(record => record.timestamp === timestamp);
+    
+    if (!recordToDelete) {
+      return false;
+    }
+    
+    // Update records
+    const updatedRecords = records.filter(record => record.timestamp !== timestamp);
+    localStorage.setItem(DISTRIBUTION_RECORDS_KEY, JSON.stringify(updatedRecords));
+    
+    // Update summary data
+    const summary = getSummaryData();
+    summary.totalDistribution -= recordToDelete.amount;
+    summary.availableStock += recordToDelete.amount;
+    
+    // Recalculate average price if needed
+    if (summary.totalDistribution > 0 && recordToDelete.pricePerKg && recordToDelete.totalValue) {
+      // Remove this record's contribution from the total value calculation
+      const oldTotalValue = summary.totalDistribution * summary.avgPrice + recordToDelete.amount * recordToDelete.pricePerKg;
+      const newTotalValue = oldTotalValue - recordToDelete.totalValue;
+      summary.avgPrice = newTotalValue / summary.totalDistribution;
+    } else if (summary.totalDistribution === 0) {
+      summary.avgPrice = 0;
+    }
+    
+    // Make sure values don't go below zero due to rounding errors
+    summary.totalDistribution = Math.max(0, summary.totalDistribution);
+    summary.availableStock = Math.max(0, summary.availableStock);
+    
+    updateSummaryData(summary);
+    return true;
+  } catch (error) {
+    console.error('Error deleting distribution record:', error);
     return false;
   }
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const HistoryTable = ({ records, type }) => {
+const HistoryTable = ({ records, type, onDelete }) => {
   // Sort records by date descending
   const sortedRecords = [...records].sort((a, b) => 
     new Date(b.date) - new Date(a.date)
@@ -9,6 +9,12 @@ const HistoryTable = ({ records, type }) => {
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('id-ID', options);
+  };
+
+  const handleDelete = (timestamp) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+      onDelete(timestamp);
+    }
   };
   
   const renderProductionTable = () => (
@@ -19,6 +25,7 @@ const HistoryTable = ({ records, type }) => {
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah (kg)</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah (butir)</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
@@ -28,6 +35,14 @@ const HistoryTable = ({ records, type }) => {
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.amount.toLocaleString()}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{(record.amount * 16).toLocaleString()}</td>
             <td className="px-6 py-4 text-sm text-gray-900">{record.notes || '-'}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <button 
+                onClick={() => handleDelete(record.timestamp)}
+                className="text-red-600 hover:text-red-800 font-medium cursor-pointer"
+              >
+                Hapus
+              </button>
+            </td>
           </tr>
         ))}
       </tbody>
@@ -44,6 +59,7 @@ const HistoryTable = ({ records, type }) => {
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Harga (Rp/kg)</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Nilai (Rp)</th>
           <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Catatan</th>
+          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
         </tr>
       </thead>
       <tbody className="bg-white divide-y divide-gray-200">
@@ -55,6 +71,14 @@ const HistoryTable = ({ records, type }) => {
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.pricePerKg.toLocaleString()}</td>
             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{record.totalValue.toLocaleString()}</td>
             <td className="px-6 py-4 text-sm text-gray-900">{record.notes || '-'}</td>
+            <td className="px-6 py-4 whitespace-nowrap text-sm">
+              <button 
+                onClick={() => handleDelete(record.timestamp)}
+                className="text-red-600 hover:text-red-800 font-medium cursor-pointer"
+              >
+                Hapus
+              </button>
+            </td>
           </tr>
         ))}
       </tbody>
