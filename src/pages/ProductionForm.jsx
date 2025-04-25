@@ -18,10 +18,23 @@ const ProductionForm = () => {
     });
   };
 
+  // Calculate conversions when there's a valid egg count
+  const calculateConversions = () => {
+    if (formData.amount && !isNaN(formData.amount) && parseInt(formData.amount) > 0) {
+      const eggs = parseInt(formData.amount);
+      const kg = (eggs / 16).toFixed(2);
+      const crates = (eggs / 160).toFixed(2);
+      return { eggs, kg, crates };
+    }
+    return null;
+  };
+
+  const conversions = calculateConversions();
+
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.amount || isNaN(formData.amount) || parseFloat(formData.amount) <= 0) {
+    if (!formData.amount || isNaN(formData.amount) || parseInt(formData.amount) <= 0) {
       setMessage({ text: 'Jumlah produksi harus berupa angka positif', type: 'error' });
       return;
     }
@@ -29,11 +42,14 @@ const ProductionForm = () => {
     setIsSubmitting(true);
     
     try {
-      // Add production record
-      const amountInKg = parseFloat(formData.amount);
+      // Convert eggs to kg for storage
+      const eggs = parseInt(formData.amount);
+      const amountInKg = eggs / 16;
+      
       const record = {
         ...formData,
-        amount: amountInKg,
+        eggs: eggs,
+        amount: amountInKg, // Store amount in kg for consistency
         timestamp: new Date().toISOString(),
         type: 'production'
       };
@@ -96,7 +112,7 @@ const ProductionForm = () => {
           
           <div className="mb-4">
             <label htmlFor="amount" className="block text-gray-700 font-medium mb-2">
-              Jumlah Produksi (kg)
+              Jumlah Produksi (butir)
             </label>
             <div className="flex items-center">
               <input
@@ -105,17 +121,18 @@ const ProductionForm = () => {
                 name="amount"
                 value={formData.amount}
                 onChange={handleChange}
-                placeholder="Masukkan jumlah dalam kg"
-                step="0.1"
-                min="0"
+                placeholder="Masukkan jumlah butir telor"
+                min="1"
+                step="1"
                 className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 box-border"
                 required
               />
             </div>
-            {formData.amount && !isNaN(formData.amount) && (
-              <p className="text-gray-600 text-sm mt-1">
-                Setara dengan {(parseFloat(formData.amount) * 16).toFixed(0)} butir telor
-              </p>
+            {conversions && (
+              <div className="text-gray-600 text-sm mt-2 space-y-1">
+                <p>Setara dengan {conversions.kg} kg</p>
+                <p>Setara dengan {conversions.crates} peti</p>
+              </div>
             )}
           </div>
           
